@@ -23,7 +23,6 @@ IplImage *refRightFlipUp = 0;
 IplImage *refLeftFlipUp = 0;
 IplImage *refBothFlipsUp =0;
 
-bool hasforked = false;
 //nimmt fuer jeden zustand ein Referenzbild auf, und speichert es in den globalen Variablen
 //Return 0 ist Erfolg, alles andere nicht
 int takeRefShots(){
@@ -41,13 +40,18 @@ void SIGINT_handler (int signum)
 {
 	assert (signum == SIGINT);
 	cerr << "Signal interrupt empfangen" << endl;
+	cout << "exit" << endl;
+	cerr << "vorwait" << endl;
+	wait();
+	cerr << "nachwait" << endl;
 	exit(0);
 }
 
-void SIGTERM_handler (int signum) {
+void SIGTERM_handler (int signum) {	
 	assert (signum == SIGTERM);
 	cerr << "SITGTERM empfangen, vermutlich verursacht durch fehlerhaften DV-Stream" << endl;
 	cerr << "Bitte versuche erneut, das Programm zu starten" << endl;
+	cout << "exit";
 	exit(1);
 }
 
@@ -117,15 +121,14 @@ int main(){
 		setvbuf(stdout,(char*)NULL,_IONBF,0);	/* Set non-buffered output on stdout */
 		
 
-		shoot(100, BEIDE);
+		/*shoot(100, BEIDE);
 		shoot(100, LINKS);
 		shoot(100, RECHTS);
 		shoot(100, LINKS);
 		shoot(1000, RECHTS);
 		shoot(2000, BEIDE);
-		shoot(2000, BEIDE);
+		shoot(2000, BEIDE);*/
 		CvMemStorage* cstorage = cvCreateMemStorage(0);
-
 		//Stream laden
 		CvCapture* capture = cvCaptureFromFile("/home/jogi/Documents/matura/ballrecognition/camfifo");
 		//CvCapture* capture = cvCaptureFromCAM(-1);
@@ -136,7 +139,6 @@ int main(){
 		}
 		//Fenster erstellen
 		cvNamedWindow( "ball", CV_WINDOW_AUTOSIZE );
-		cvNamedWindow( "ball2", CV_WINDOW_AUTOSIZE );
 
 		
 		int height, width, step, channels, i, j, k;
@@ -155,7 +157,6 @@ int main(){
 		step      = frame->widthStep;
 		channels  = frame->nChannels;
 		data      = (uchar *)frame->imageData;
-		
 		IplImage *referenz =  cvCreateImage(cvSize(width, height), 8, 1);
 		IplImage *workingcopy = cvCreateImage(cvSize(width, height), 8, 1);
 		
@@ -168,6 +169,11 @@ int main(){
 					getchar();
 					break;
 				}
+				cvCircle(frame, cvPoint(width/2,height/2), 20, cvScalar(0,255,0), 1);
+				cvLine(frame, cvPoint(0, height/2), cvPoint(width, height/2), cvScalar(0,255,0), 1);
+				cvLine(frame, cvPoint(0, 3*height/4), cvPoint(width, 3*height/4), cvScalar(0,255,0), 1);
+				cvLine(frame, cvPoint(width/2, height), cvPoint(width/2, 0), cvScalar(0,255,0), 1);
+				cvWaitKey(1);
 				cvShowImage( "ball", frame );
 				// Do not release the frame!
 				
@@ -175,15 +181,18 @@ int main(){
 				if( (cvWaitKey(10) & 255) == 27 ) {
 					takeRefShotsDebug(frame);
 					cvWaitKey(250);
+					cvDestroyAllWindows();
+					cerr << "Window closed" << endl;
+					cvWaitKey(250);
 					break;
 				}
 			}
-			
+
+
 			cvCvtColor(refFlipsDown, referenz, CV_BGR2GRAY);
 			cvSmooth(referenz, referenz, CV_GAUSSIAN, 17,17 );
 			cvWaitKey(250);
 		
-	
 			//Positionsbestimmung des Balls
 			while (1) {
 				//neuer Frame
@@ -224,7 +233,7 @@ int main(){
 				cerr << "Anzahl Gefundener Kreise:" << circles->total << endl;
 				if (circles->total > 0) {
 					shoot(10, BEIDE);
-					cvWaitKey(30);
+					cvWaitKey(100);
 				}
 			}
 	} //ende des Hauptprozesses
@@ -239,8 +248,6 @@ int main(){
 		}
 	}
 			
-	cvDestroyWindow("ball");
-	cvDestroyWindow("ball2");
 	return 0;
 }
 

@@ -13,8 +13,10 @@ int main(){
 	cout << "Shooter läuft" << endl;
 	while(true){
 		cin >> input;
+		cout << input << endl;
 		if (input == "exit"){
 			cout << "Beende Shooter" << endl;
+			break;
 		} else {
 			flips = input[0];
 			command = "echo -n "+flips+" >> /dev/ttyUSB0";
