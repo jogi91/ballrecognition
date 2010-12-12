@@ -53,7 +53,8 @@ void SIGTERM_handler (int signum) {
 
 //Der Flipper soll delay millisekunden oben bleiben und nur die entsprechenden Flips sollen aktiviert werden.
 // Zuordnoung ist binaer: 01: rchter flipper, 10, linker flipper, 11 beide
-void shoot(int delay, int flips){
+// Version mit nur 1 Prozess
+/*void shoot(int delay, int flips){
 	switch (flips) {
 		case 1:
 			system("echo -n 1 >> /dev/ttyUSB0");
@@ -71,6 +72,10 @@ void shoot(int delay, int flips){
 	usleep(delay*1000);
 	system("echo -n 0 >> /dev/ttyUSB0");
 	cerr << "Funktion Shoot ausgeführt" << endl;
+}*/
+
+void shoot(int delay, int flips){
+	cout << flips << delay << endl;
 }
 
 
