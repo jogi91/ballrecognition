@@ -206,6 +206,12 @@ int main(){
 			cvWaitKey(250);
 		
 			//Positionsbestimmung des Balls
+			int xkoordinate, ykoordinate, xkoordinatealt, ykoordinatealt;
+			ykoordinatealt = 0;
+			xkoordinatealt = 0;
+			xkoordinate = 0;
+			ykoordinate = 0;
+			counter = 0;
 			while (1) {
 				//neuer Frame
 				frame = cvQueryFrame( capture );
@@ -244,11 +250,12 @@ int main(){
 			
 				//cerr << "Anzahl Gefundener Kreise:" << circles->total << endl;
 				cerr << "Zielkoordinate: " << 3*height/4+50 << endl;
-				int xkoordinate, ykoordinate, counter;
-				xkoordinate = 0;
-				ykoordinate = 0;
-				counter = 0;
-				if (circles->total < 10 and circles->total != 0 and counter < 6) {
+				
+				xkoordinatealt = xkoordinate;
+				ykoordinatealt = ykoordinate;
+				if (circles->total < 10 and circles->total != 0 and counter > 6) {
+					xkoordinate = 0;
+					ykoordinate = 0;
 					//Wenn es weniger als 10 Kreise hat, Bild analysieren.
 					for (i=0; i<circles->total; i++) {
 					float* p = (float*)cvGetSeqElem(circles, i);
@@ -259,6 +266,9 @@ int main(){
 					xkoordinate = xkoordinate/circles->total;
 					ykoordinate	= ykoordinate/circles->total;
 					cerr << "Koordinaten: " << xkoordinate << "/" << ykoordinate << endl;
+					if (ykoordinate == ykoordinatealt) {
+						cerr << "Y-KOORDINATEN GLEICH!!!!" << endl;
+					}
 					if (ykoordinate > 375) {
 						cerr << "ausgelöst" << endl;
 						counter = 0;
@@ -271,6 +281,7 @@ int main(){
 					}
 				} else {
 					counter++;
+					cerr << counter;
 				}
 			}
 	} //ende des Hauptprozesses
