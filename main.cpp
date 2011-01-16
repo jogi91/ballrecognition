@@ -23,17 +23,31 @@ IplImage *refRightFlipUp = 0;
 IplImage *refLeftFlipUp = 0;
 IplImage *refBothFlipsUp =0;
 
-//nimmt fuer jeden zustand ein Referenzbild auf, und speichert es in den globalen Variablen
-//Return 0 ist Erfolg, alles andere nicht
-int takeRefShots(){
-	return 0;
+void shoot(int delay, int flips){
+	cout << flips << delay << endl;
 }
 
-//Dient solange als Referenz, bis die echte Kamera verwendet wird, nur im Gebrauch mit Files zu gebrauchen
-int takeRefShotsDebug(IplImage* frame){
-	refFlipsDown = frame;
-	return 0;
+//nimmt fuer jeden zustand ein Referenzbild auf, und speichert es in den globalen Variablen
+//Return 0 ist Erfolg, alles andere nicht
+int takeRefShot(IplImage * frame, int& counter){
+	switch (counter) {
+		case 0 :
+			refFlipsDown = frame;
+			cerr << "Referenzbild erfolgreich aufgenommen";
+			counter++;
+			return 0;
+		case 1:
+			refBothFlipsUp = frame;
+			cerr << "Bitte zwei Bälle auf die Flipper legen, damit die Mitte bestimmt werden kann" << endl;
+			cerr << "Bei einem beliebigen tastendruck wird die Mitte dann berechnet" << endl;
+			counter++;
+			return 0;
+		case 2:
+			// zwei Bälle erkennen, mitte berechnen
+			return 364;
+	}
 }
+
 
 //handler für das Beenden durch den Nutzer
 void SIGINT_handler (int signum)
@@ -78,9 +92,6 @@ void SIGTERM_handler (int signum) {
 	cerr << "Funktion Shoot ausgefÃ¼hrt" << endl;
 }*/
 
-void shoot(int delay, int flips){
-	cout << flips << delay << endl;
-}
 
 
 int main(){
@@ -121,13 +132,13 @@ int main(){
 		setvbuf(stdout,(char*)NULL,_IONBF,0);	/* Set non-buffered output on stdout */
 		
 
-		/*shoot(100, BEIDE);
+		shoot(100, BEIDE);
 		shoot(100, LINKS);
 		shoot(100, RECHTS);
 		shoot(100, LINKS);
 		shoot(1000, RECHTS);
 		shoot(2000, BEIDE);
-		shoot(2000, BEIDE);*/
+		shoot(2000, BEIDE);
 		CvMemStorage* cstorage = cvCreateMemStorage(0);
 		//Stream laden
 		CvCapture* capture = cvCaptureFromFile("/home/jogi/Documents/matura/ballrecognition/camfifo");
@@ -142,6 +153,8 @@ int main(){
 
 		
 		int height, width, step, channels, i, j, k;
+		int counter = 0;
+		int mittelxkoordinate;
 		uchar *data;
 		
 		//Einen Frame im Voraus abrufen
@@ -169,6 +182,7 @@ int main(){
 					getchar();
 					break;
 				}
+				// Fadenkreuz
 				cvCircle(frame, cvPoint(width/2,height/2), 20, cvScalar(0,255,0), 1);
 				cvLine(frame, cvPoint(0, height/2), cvPoint(width, height/2), cvScalar(0,255,0), 1);
 				cvLine(frame, cvPoint(0, 3*height/4), cvPoint(width, 3*height/4), cvScalar(0,255,0), 1);
@@ -179,11 +193,9 @@ int main(){
 				
 				//If ESC key pressed, take Refshot
 				if( (cvWaitKey(10) & 255) == 27 ) {
-					takeRefShotsDebug(frame);
-					cvWaitKey(250);
+					takeRefShot(frame, counter);
 					cvDestroyAllWindows();
 					cerr << "Window closed" << endl;
-					cvWaitKey(250);
 					break;
 				}
 			}
@@ -230,10 +242,35 @@ int main(){
 				
 				CvSeq* circles =  cvHoughCircles( workingcopy, cstorage, CV_HOUGH_GRADIENT, 1, workingcopy->height/50, 12, 10,4,50 );	
 			
-				cerr << "Anzahl Gefundener Kreise:" << circles->total << endl;
-				if (circles->total > 0) {
-					shoot(10, BEIDE);
-					cvWaitKey(100);
+				//cerr << "Anzahl Gefundener Kreise:" << circles->total << endl;
+				cerr << "Zielkoordinate: " << 3*height/4+50 << endl;
+				int xkoordinate, ykoordinate, counter;
+				xkoordinate = 0;
+				ykoordinate = 0;
+				counter = 0;
+				if (circles->total < 10 and circles->total != 0 and counter < 6) {
+					//Wenn es weniger als 10 Kreise hat, Bild analysieren.
+					for (i=0; i<circles->total; i++) {
+					float* p = (float*)cvGetSeqElem(circles, i);
+						xkoordinate += cvRound(p[0]);
+						ykoordinate += cvRound(p[1]);
+					}
+					//mttlere koordinaten berechnen
+					xkoordinate = xkoordinate/circles->total;
+					ykoordinate	= ykoordinate/circles->total;
+					cerr << "Koordinaten: " << xkoordinate << "/" << ykoordinate << endl;
+					if (ykoordinate > 375) {
+						cerr << "ausgelöst" << endl;
+						counter = 0;
+						if (xkoordinate > width/2 ){
+							shoot(100, RECHTS);
+						} else {
+							shoot(100, LINKS);
+						}
+						
+					}
+				} else {
+					counter++;
 				}
 			}
 	} //ende des Hauptprozesses

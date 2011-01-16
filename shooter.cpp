@@ -23,9 +23,10 @@ int main(){
 			system(command.c_str());
 			durationstring = input.substr(1); //Ausser dem ersten Zeichen sind alle Angaben Zeit angaben
 			duration = atoi(durationstring.c_str());
-			usleep(duration*1000);
-			system("echo -n 0 >> /dev/ttyUSB0");
-			
+			if (duration != 0) { // Eine Zeitangabe von 0 bedeutet so lange, bis ein anderer Befehl kommt
+				usleep(duration*1000);
+				system("echo -n 0 >> /dev/ttyUSB0");
+			}
 		}
 	}
 	return 0;
