@@ -1,0 +1,11 @@
+= README
+
+Dieser Code gehört zu der Maturarbeit "Echtzeitbilderkennung zu Steuerung eines Flipperkastens". Die Arbeit wird bei Gelegenheit auch hier veröffentlicht.
+
+= Installation
+
+Zum Ausführen dieses Programmes muss OpenCV installiert werden nach der offiziellen Dokumentation (http://opencv.willowgarage.com/wiki/), ferner sollte gcc vorhanden sein. Danach müsste es sich mit Hilfe von make all übersetzen lassen. Zuvor muss allerdings noch die named pipe mit dem Kommando "mkfifo camfifo" im Programmverzeichnis erstellt werden
+
+Zum Start muss dvgrab installiert sein, der Kamerainput kommt von /dev/raw1394, der Output wird nach /dev/ttyUSB0 geleitet. Auf beiden Devices muss der ausführende Benutzer Schreib und Leserechte haben.
+
+Bei Problemen mit der Installation benutze man bitte die Issues-Funktion von Github.
